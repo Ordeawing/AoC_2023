@@ -3,52 +3,19 @@
 
 using namespace std;
 
-void add(string **array, string value, int *arr_size) {
-    string *temp = new string[*arr_size + 1];
-    copy(*array, *array + *arr_size, temp);
-    temp[*arr_size] = value;
-
-    *arr_size += 1;
-    delete[] *array;
-    *array = temp;
-}
-
-void remove(string **array, string to_delete, int *arr_size) {
-    string *temp = new string[*arr_size - 1];
-    int index = 0;
-    for (int i = 0; i < *arr_size; i++) {
-        if (strcmp((*(*array + i)).c_str(), to_delete.c_str())) {
-            temp[index] = *(*array + i);
-            index++;
-        }
+void computeValue(int *f_pos, int *f_value, int *l_pos, int *l_value, int offset, int value) {
+    if (*f_pos == -1) {
+        *f_pos = offset;
+        *l_pos = offset;
+        *f_value = value;
+        *l_value = value;
+    } else if (offset < *f_pos) {
+        *f_pos = offset;
+        *f_value = value;
+    } else if (offset > *l_pos) {
+        *l_pos = offset;
+        *l_value = value;
     }
-
-    *arr_size -= 1;
-    delete[] *array;
-    *array = temp;
-}
-
-void removeAt(string **array, int to_delete, int *arr_size) {
-    string *temp = new string[*arr_size - 1];
-    int index = 0;
-    for (int i = 0; i < *arr_size; i++) {
-        if (!(i == to_delete)) {
-            temp[index] = *(*array + i);
-            index++;
-        }
-    }
-    
-    *arr_size -= 1;
-    delete[] *array;
-    *array = temp;
-}
-
-int countSub(string r_str, string sub) {
-    int count = 0;
-    for (size_t offset = r_str.find(sub); offset != string::npos; offset = r_str.find(sub, offset + sub.length())) {
-        ++count;
-    }
-    return count;
 }
 
 int main() {
@@ -58,14 +25,30 @@ int main() {
     int digits_size = 9;
     string s_digits[9] = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
     char c_digits[9] = {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
+    int digits[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     if (file.is_open()) {
         string line;
         int f_total = 0;
         while (getline(file, line)) {
+            int f_value;
+            int f_pos = -1;
+            int l_value;
+            int l_pos;
+
             for (int i = 0; i < digits_size; i++) {
-                //todo
+                string sub = s_digits[i];
+                for (size_t offset = line.find(sub); offset != string::npos; offset = line.find(sub, offset + sub.length())) {
+                    computeValue(&f_pos, &f_value, &l_pos, &l_value, offset, digits[i]);
+                }
+
+                sub = c_digits[i];
+                for (size_t offset = line.find(sub); offset != string::npos; offset = line.find(sub, offset + sub.length())) {
+                    computeValue(&f_pos, &f_value, &l_pos, &l_value, offset, digits[i]);
+                }
             }
+
+            f_total += (f_value * 10) + l_value;
         }
         cout << f_total << '\n';
         file.close();
